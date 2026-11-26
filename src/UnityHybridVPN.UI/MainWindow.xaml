@@ -1,0 +1,202 @@
+<Window x:Class="UnityHybridVPN.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="UnityHybridVPN — عميل VPN الهجين الاحترافي"
+        Height="780" Width="1120" MinHeight="640" MinWidth="920"
+        WindowStartupLocation="CenterScreen"
+        Background="#090D16" Foreground="#F1F5F9"
+        FlowDirection="RightToLeft"
+        FontFamily="Segoe UI">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#111827" CornerRadius="14" Padding="18,14" Margin="0,0,0,14" BorderBrush="#1F2937" BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="#8B5CF6" CornerRadius="6" Padding="8,3" Margin="0,0,10,0">
+                            <TextBlock Text="HYBRID VPN" FontSize="11" FontWeight="Bold" Foreground="#F8FAFC"/>
+                        </Border>
+                        <TextBlock x:Name="TxtTitle" Text="UnityHybridVPN — عميل الشبكة الخاصة الهجين" FontSize="20" FontWeight="Bold" Foreground="#F8FAFC"/>
+                    </StackPanel>
+                    <TextBlock x:Name="TxtSubtitle" Text="يدعم WireGuard وOpenVPN الخاص، مع خوادم VPNGate المجتمعية وفحص الأمان الصارم" FontSize="12" Foreground="#94A3B8" Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="BtnLang" Content="English (LTR)" Background="#1F2937" Margin="0,0,10,0" Click="BtnLang_Click"/>
+                    <Button x:Name="BtnDisconnect" Content="قطع الاتصال" Background="#DC2626" Click="BtnDisconnect_Click" IsEnabled="False"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Status Bar -->
+        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,14">
+            <Border Background="#111827" CornerRadius="12" Padding="16,12" Margin="0,0,8,0" BorderBrush="#1F2937" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="LblConnState" Text="حالة النفق" Foreground="#94A3B8" FontSize="12"/>
+                    <TextBlock x:Name="TxtConnState" Text="غير متصل (Ready)" Foreground="#F59E0B" FontSize="18" FontWeight="Bold" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+            <Border Background="#111827" CornerRadius="12" Padding="16,12" Margin="4,0,4,0" BorderBrush="#1F2937" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="LblEngines" Text="محركات النفق المثبتة" Foreground="#94A3B8" FontSize="12"/>
+                    <TextBlock x:Name="TxtEngines" Text="جاري الفحص..." Foreground="#38BDF8" FontSize="13" FontWeight="SemiBold" Margin="0,4,0,4"/>
+                    <Button x:Name="BtnInstallEngines" Content="تثبيت WireGuard / OpenVPN" Background="#334155" Padding="8,4" FontSize="11" Click="BtnInstallEngines_Click" Visibility="Collapsed"/>
+                </StackPanel>
+            </Border>
+            <Border Background="#111827" CornerRadius="12" Padding="16,12" Margin="8,0,0,0" BorderBrush="#1F2937" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="LblTrustBadge" Text="مستوى الثقة والأمان" Foreground="#94A3B8" FontSize="12"/>
+                    <TextBlock x:Name="TxtTrustBadge" Text="فحص تلقائي للملفات (Zero-Exec)" Foreground="#10B981" FontSize="14" FontWeight="SemiBold" Margin="0,6,0,0"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <!-- Tabs -->
+        <TabControl Grid.Row="2" Background="#111827" BorderBrush="#1F2937" BorderThickness="1" Foreground="#F1F5F9" Padding="4">
+            <!-- Tab 1: My Profiles -->
+            <TabItem x:Name="TabProfiles" Header="ملفاتي الخاصة (WireGuard / OpenVPN)">
+                <Grid Margin="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <Button x:Name="BtnImportWg" Content="استيراد ملف WireGuard (.conf)" Background="#7C3AED" Margin="0,0,10,0" Click="BtnImportWg_Click"/>
+                        <Button x:Name="BtnImportOvpn" Content="استيراد ملف OpenVPN (.ovpn)" Background="#0284C7" Margin="0,0,10,0" Click="BtnImportOvpn_Click"/>
+                        <CheckBox x:Name="ChkKillSwitch" Content="Kill Switch (جدار الحماية)" Foreground="#FDE68A" VerticalAlignment="Center" Margin="10,0,0,0" Checked="ChkKillSwitch_Changed" Unchecked="ChkKillSwitch_Changed"/>
+                    </StackPanel>
+                    <DataGrid x:Name="GridProfiles" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False"
+                              Background="#0B101B" Foreground="#F1F5F9" RowBackground="#111827" AlternatingRowBackground="#161F30"
+                              GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1F2937" BorderThickness="0">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="#1F2937"/>
+                                <Setter Property="Foreground" Value="#A78BFA"/>
+                                <Setter Property="Padding" Value="12,9"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="الاسم" Binding="{Binding Name}" IsReadOnly="True" Width="210"/>
+                            <DataGridTextColumn Header="البروتوكول" Binding="{Binding Protocol}" IsReadOnly="True" Width="105"/>
+                            <DataGridTextColumn Header="الدولة" Binding="{Binding Country}" IsReadOnly="True" Width="120"/>
+                            <DataGridTextColumn Header="العنوان" Binding="{Binding Endpoint}" IsReadOnly="True" Width="180"/>
+                            <DataGridTextColumn Header="الثقة" Binding="{Binding Trust}" IsReadOnly="True" Width="150"/>
+                            <DataGridTemplateColumn Header="إجراء" Width="180">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="اتصال" Background="#10B981" Foreground="#052E16" Padding="10,4" Margin="0,0,6,0" Click="BtnConnectProfile_Click" Tag="{Binding Id}"/>
+                                            <Button Content="حذف" Background="#DC2626" Padding="10,4" Click="BtnDeleteProfile_Click" Tag="{Binding Id}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab 2: VPNGate Community Nodes -->
+            <TabItem x:Name="TabVpnGate" Header="خوادم مجانية متعددة الدول (VPNGate)">
+                <Grid Margin="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="#451A03" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,10">
+                        <TextBlock x:Name="TxtVpnGateWarn" Text="⚠ تنبيه أمان: خوادم VPNGate مجتمعية متطوعة مجانية — مناسبة للتصفح العام وتجاوز الحجب فقط، ولا يُنصح بها للمعاملات البنكية أو الحسابات الحساسة." Foreground="#FDE68A" FontSize="12" TextWrapping="Wrap"/>
+                    </Border>
+
+                    <WrapPanel Grid.Row="1" Margin="0,0,0,10">
+                        <Button x:Name="BtnFetchNodes" Content="تحديث الخوادم المجانية الآن" Background="#0284C7" Margin="0,0,8,6" Click="BtnFetchNodes_Click"/>
+                        <Button x:Name="BtnImportCsv" Content="استيراد CSV" Background="#334155" Margin="0,0,8,6" Click="BtnImportCsv_Click"/>
+                        <TextBox x:Name="TxtMirrorUrl" Width="190" Padding="7" Margin="0,0,8,6" Background="#1F2937" Foreground="#F8FAFC" BorderBrush="#334155" ToolTip="رابط مرآة بديل (GitHub Raw / Cloudflare Worker)"/>
+                        <TextBox x:Name="TxtCountryFilter" Width="120" Padding="7" Margin="0,0,8,6" Background="#1F2937" Foreground="#F8FAFC" BorderBrush="#334155" TextChanged="TxtCountryFilter_TextChanged" ToolTip="بحث باسم الدولة"/>
+                        <TextBox x:Name="TxtNativeIp" Width="135" Padding="7" Margin="0,0,8,6" Background="#1F2937" Foreground="#F8FAFC" BorderBrush="#334155" ToolTip="IP سيرفر مباشر"/>
+                        <ComboBox x:Name="CmbNativeProto" Width="110" Margin="0,0,8,6" SelectedIndex="0">
+                            <ComboBoxItem Content="SSTP (443)" Tag="Sstp"/>
+                            <ComboBoxItem Content="L2TP" Tag="L2tp"/>
+                        </ComboBox>
+                        <Button x:Name="BtnNativeConnect" Content="اتصال Windows مباشر" Background="#10B981" Foreground="#052E16" Margin="0,0,0,6" Click="BtnNativeConnect_Click"/>
+                    </WrapPanel>
+
+                    <DataGrid x:Name="GridVpnGate" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False"
+                              Background="#0B101B" Foreground="#F1F5F9" RowBackground="#111827" AlternatingRowBackground="#161F30"
+                              GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#1F2937" BorderThickness="0">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="#1F2937"/>
+                                <Setter Property="Foreground" Value="#38BDF8"/>
+                                <Setter Property="Padding" Value="12,9"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="الدولة" Binding="{Binding CountryLong}" IsReadOnly="True" Width="170"/>
+                            <DataGridTextColumn Header="IP" Binding="{Binding Ip}" IsReadOnly="True" Width="135"/>
+                            <DataGridTextColumn Header="Ping (ms)" Binding="{Binding PingMs}" IsReadOnly="True" Width="90"/>
+                            <DataGridTextColumn Header="السرعة (Mbps)" Binding="{Binding SpeedMbps}" IsReadOnly="True" Width="120"/>
+                            <DataGridTextColumn Header="التقييم" Binding="{Binding Score}" IsReadOnly="True" Width="110"/>
+                            <DataGridTemplateColumn Header="إجراء" Width="140">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="حفظ واتصال" Background="#10B981" Foreground="#052E16" Padding="10,4" Click="BtnUseVpnGateNode_Click" Tag="{Binding Ip}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab 3: Self-Host Helper -->
+            <TabItem x:Name="TabSelfHost" Header="إنشاء سيرفرك الشخصي (Oracle Free / VPS)">
+                <Grid Margin="14">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBox x:Name="TxtVpsIp" Width="220" Padding="8" Background="#1F2937" Foreground="#F8FAFC" BorderBrush="#334155" Text="203.0.113.10" Margin="0,0,10,0"/>
+                        <Button x:Name="BtnGenScript" Content="توليد سكربت تنصيب WireGuard" Background="#7C3AED" Margin="0,0,10,0" Click="BtnGenScript_Click"/>
+                        <Button x:Name="BtnCopyScript" Content="نسخ السكربت" Background="#334155" Click="BtnCopyScript_Click"/>
+                    </StackPanel>
+                    <TextBox x:Name="TxtSelfHostScript" Grid.Row="1" IsReadOnly="True" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
+                             FontFamily="Consolas" FontSize="12" Background="#0B101B" Foreground="#A7F3D0" BorderBrush="#1F2937" Padding="12"/>
+                </Grid>
+            </TabItem>
+            <!-- Tab 4: Built-in Zero-Install SSH Tunnel -->
+            <TabItem x:Name="TabSsh" Header="نفق SSH المشفّر (يعمل فوراً بدون تثبيت)">
+                <StackPanel Margin="16">
+                    <Border Background="#052E16" BorderBrush="#10B981" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,14">
+                        <TextBlock Text="✓ هذا الوضع يستخدم OpenSSH المدمج في Windows 10/11 مباشرة — يعمل فوراً دون الحاجة لتنزيل WireGuard أو OpenVPN من المواقع المحجوبة." Foreground="#A7F3D0" FontSize="12" TextWrapping="Wrap"/>
+                    </Border>
+                    <WrapPanel Margin="0,0,0,12">
+                        <TextBox x:Name="TxtSshHost" Width="200" Padding="8" Margin="0,0,8,0" Background="#1F2937" Foreground="#F8FAFC" BorderBrush="#334155" ToolTip="IP السيرفر" Text="203.0.113.10"/>
+                        <TextBox x:Name="TxtSshPort" Width="70" Padding="8" Margin="0,0,8,0" Background="#1F2937" Foreground="#F8FAFC" BorderBrush="#334155" ToolTip="المنفذ" Text="22"/>
+                        <TextBox x:Name="TxtSshUser" Width="130" Padding="8" Margin="0,0,8,0" Background="#1F2937" Foreground="#F8FAFC" BorderBrush="#334155" ToolTip="اسم المستخدم" Text="ubuntu"/>
+                        <TextBox x:Name="TxtSshKey" Width="220" Padding="8" Margin="0,0,8,0" Background="#1F2937" Foreground="#F8FAFC" BorderBrush="#334155" ToolTip="مسار مفتاح SSH (اختياري)"/>
+                        <Button Content="اختيار مفتاح" Background="#334155" Margin="0,0,8,0" Click="BtnBrowseSshKey_Click"/>
+                        <Button x:Name="BtnConnectSsh" Content="تشغيل نفق SSH" Background="#10B981" Foreground="#052E16" Click="BtnConnectSsh_Click"/>
+                    </WrapPanel>
+                    <TextBlock x:Name="TxtSshStatus" Text="جاهز — أدخل بيانات أي سيرفر SSH (مثل Oracle Free) واضغط تشغيل." Foreground="#94A3B8" FontSize="12"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+        <TextBlock x:Name="TxtFooter" Grid.Row="3" Margin="0,10,0,0" FontSize="11" Foreground="#64748B"
+                   Text="UnityHybridVPN v1.0 | وضع آمن هجين: WireGuard/OpenVPN خاص + عقد VPNGate المجتمعية + مساعد VPS الشخصي"/>
+    </Grid>
+</Window>

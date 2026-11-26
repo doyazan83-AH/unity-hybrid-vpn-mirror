@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "UnityHybridVPN/1.0.0": {
+        "dependencies": {
+          "UnityHybridVPN.Core": "1.0.0"
+        },
+        "runtime": {
+          "UnityHybridVPN.dll": {}
+        }
+      },
+      "UnityHybridVPN.Core/1.0.0": {
+        "runtime": {
+          "UnityHybridVPN.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "UnityHybridVPN/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "UnityHybridVPN.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

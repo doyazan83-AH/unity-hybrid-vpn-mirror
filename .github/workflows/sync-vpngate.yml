@@ -1,0 +1,24 @@
+name: Sync VPNGate Mirror
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch VPNGate CSV
+        run: |
+          curl -fsSL "http://www.vpngate.net/api/iphone/" -o vpngate_cache.csv
+      - name: Commit updated list
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add vpngate_cache.csv
+          git diff --cached --quiet || (git commit -m "chore: update vpngate mirror" && git push)
