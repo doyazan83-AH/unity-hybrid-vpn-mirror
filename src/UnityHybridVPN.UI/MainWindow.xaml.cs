@@ -251,7 +251,8 @@ public partial class MainWindow : Window
             var node = _allNodes.FirstOrDefault(n => n.Ip == ip);
             if (node == null) return;
 
-            if (TunnelController.FindOpenVpnExe() == null)
+            // Connect directly inside our app via built-in SSTP (443) by default (no external OpenVPN window)
+            if (ChkUseExternalOpenVpn.IsChecked != true)
             {
                 _isBusy = true;
                 try

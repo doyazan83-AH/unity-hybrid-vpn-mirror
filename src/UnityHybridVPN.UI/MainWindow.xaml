@@ -131,7 +131,8 @@
                             <ComboBoxItem Content="SSTP (443)" Tag="Sstp"/>
                             <ComboBoxItem Content="L2TP" Tag="L2tp"/>
                         </ComboBox>
-                        <Button x:Name="BtnNativeConnect" Content="اتصال Windows مباشر" Background="#10B981" Foreground="#052E16" Margin="0,0,0,6" Click="BtnNativeConnect_Click"/>
+                        <Button x:Name="BtnNativeConnect" Content="اتصال Windows مباشر" Background="#10B981" Foreground="#052E16" Margin="0,0,8,6" Click="BtnNativeConnect_Click"/>
+                        <CheckBox x:Name="ChkUseExternalOpenVpn" Content="استخدام OpenVPN الخارجي" Foreground="#94A3B8" VerticalAlignment="Center" Margin="0,0,0,6" IsChecked="False"/>
                     </WrapPanel>
 
                     <DataGrid x:Name="GridVpnGate" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False"
