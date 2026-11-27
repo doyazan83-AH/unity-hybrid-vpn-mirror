@@ -199,16 +199,16 @@ public partial class MainWindow : Window
     private async void BtnFetchNodes_Click(object sender, RoutedEventArgs e)
     {
         BtnFetchNodes.IsEnabled = false;
-        BtnFetchNodes.Content = _isArabic ? "جاري الجلب والفحص..." : "Fetching & Probing...";
+        BtnFetchNodes.Content = _isArabic ? "جاري فحص السيرفرات..." : "Probing Servers...";
         try
         {
-            _allNodes = await _vpnGate.FetchNodesAsync(TxtMirrorUrl.Text);
-            await _vpnGate.ProbePingsAsync(_allNodes);
-            _allNodes = _allNodes
-                .OrderByDescending(n => n.PingMs > 0 && n.PingMs < 999)
-                .ThenByDescending(n => n.SpeedMbps)
-                .ThenBy(n => n.PingMs > 0 ? n.PingMs : int.MaxValue)
-                .ToList();
+            var raw = await _vpnGate.FetchNodesAsync(TxtMirrorUrl.Text);
+            _allNodes = await _vpnGate.ProbeAndSortFastestAsync(raw);
+            int readyCount = _allNodes.Count(n => n.IsSstpReady);
+            TxtConnState.Text = _isArabic
+                ? $"تم فحص {_allNodes.Count} خادماً — {readyCount} جاهز ومرتب بالأسرع"
+                : $"Probed {_allNodes.Count} nodes — {readyCount} SSTP-ready (Fastest First)";
+            TxtConnState.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(56, 189, 248));
             FilterVpnGateNodes();
         }
         catch (Exception ex)
@@ -218,18 +218,16 @@ public partial class MainWindow : Window
         finally
         {
             BtnFetchNodes.IsEnabled = true;
-            BtnFetchNodes.Content = _isArabic ? "تحديث الخوادم المجانية الآن" : "Refresh Free Servers";
+            BtnFetchNodes.Content = _isArabic ? "فحص وترتيب الأسرع" : "Probe & Sort Fastest";
         }
     }
 
-    private void BtnImportCsv_Click(object sender, RoutedEventArgs e)
+    private async void BtnImportCsv_Click(object sender, RoutedEventArgs e)
     {
         var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "VPNGate CSV (*.csv)|*.csv|All Files (*.*)|*.*" };
         if (dlg.ShowDialog() != true) return;
-        _allNodes = VpnGateDirectoryService.ParseCsv(File.ReadAllText(dlg.FileName))
-            .OrderByDescending(n => n.SpeedMbps)
-            .ThenBy(n => n.PingMs > 0 ? n.PingMs : int.MaxValue)
-            .ToList();
+        var raw = VpnGateDirectoryService.ParseCsv(File.ReadAllText(dlg.FileName));
+        _allNodes = await _vpnGate.ProbeAndSortFastestAsync(raw);
         FilterVpnGateNodes();
     }
 
@@ -297,18 +295,13 @@ public partial class MainWindow : Window
         {
             if (_allNodes.Count == 0)
             {
-                TxtConnState.Text = _isArabic ? "جاري جلب أسرع الخوادم..." : "Fetching fastest servers...";
-                _allNodes = await _vpnGate.FetchNodesAsync(TxtMirrorUrl.Text);
-                await _vpnGate.ProbePingsAsync(_allNodes);
-                _allNodes = _allNodes
-                    .OrderByDescending(n => n.PingMs > 0 && n.PingMs < 999)
-                    .ThenByDescending(n => n.SpeedMbps)
-                    .ThenBy(n => n.PingMs > 0 ? n.PingMs : int.MaxValue)
-                    .ToList();
+                TxtConnState.Text = _isArabic ? "جاري فحص وترتيب أسرع الخوادم..." : "Probing & sorting fastest servers...";
+                var raw = await _vpnGate.FetchNodesAsync(TxtMirrorUrl.Text);
+                _allNodes = await _vpnGate.ProbeAndSortFastestAsync(raw);
                 FilterVpnGateNodes();
             }
 
-            var candidates = _allNodes.Where(n => n.PingMs > 0 && n.PingMs < 9000).Take(8).ToList();
+            var candidates = _allNodes.Where(n => n.IsSstpReady).Take(8).ToList();
             if (candidates.Count == 0) candidates = _allNodes.Take(5).ToList();
 
             foreach (var node in candidates)

@@ -121,7 +121,7 @@
                     </Border>
 
                     <WrapPanel Grid.Row="1" Margin="0,0,0,10">
-                        <Button x:Name="BtnFetchNodes" Content="تحديث الخوادم المجانية الآن" Background="#0284C7" Margin="0,0,8,6" Click="BtnFetchNodes_Click"/>
+                        <Button x:Name="BtnFetchNodes" Content="فحص وترتيب الأسرع" Background="#0284C7" Margin="0,0,8,6" Click="BtnFetchNodes_Click"/>
                         <Button x:Name="BtnAutoConnect" Content="اتصال تلقائي بالأسرع" Background="#7C3AED" Margin="0,0,8,6" Click="BtnAutoConnect_Click"/>
                         <Button x:Name="BtnImportCsv" Content="استيراد CSV" Background="#334155" Margin="0,0,8,6" Click="BtnImportCsv_Click"/>
                         <TextBox x:Name="TxtMirrorUrl" Width="190" Padding="7" Margin="0,0,8,6" Background="#1F2937" Foreground="#F8FAFC" BorderBrush="#334155" ToolTip="رابط مرآة بديل (GitHub Raw / Cloudflare Worker)"/>
@@ -145,11 +145,12 @@
                             </Style>
                         </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="الدولة" Binding="{Binding CountryLong}" IsReadOnly="True" Width="170"/>
-                            <DataGridTextColumn Header="IP" Binding="{Binding Ip}" IsReadOnly="True" Width="135"/>
-                            <DataGridTextColumn Header="Ping (ms)" Binding="{Binding PingMs}" IsReadOnly="True" Width="90"/>
-                            <DataGridTextColumn Header="السرعة (Mbps)" Binding="{Binding SpeedMbps}" IsReadOnly="True" Width="120"/>
-                            <DataGridTextColumn Header="التقييم" Binding="{Binding Score}" IsReadOnly="True" Width="110"/>
+                            <DataGridTextColumn Header="الحالة" Binding="{Binding HealthStatus}" IsReadOnly="True" Width="125"/>
+                            <DataGridTextColumn Header="الدولة" Binding="{Binding CountryLong}" IsReadOnly="True" Width="155"/>
+                            <DataGridTextColumn Header="IP" Binding="{Binding Ip}" IsReadOnly="True" Width="125"/>
+                            <DataGridTextColumn Header="Ping الفعلي (ms)" Binding="{Binding PingMs}" IsReadOnly="True" Width="115"/>
+                            <DataGridTextColumn Header="السرعة (Mbps)" Binding="{Binding SpeedMbps}" IsReadOnly="True" Width="115"/>
+                            <DataGridTextColumn Header="التقييم" Binding="{Binding Score}" IsReadOnly="True" Width="100"/>
                             <DataGridTemplateColumn Header="إجراء" Width="140">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>

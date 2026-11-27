@@ -16,7 +16,8 @@ public static class Program
             ("VpnGateCsv_ParsesNodesAndDecodesBase64", ParsesVpnGateCsv),
             ("SelfHostScript_GeneratesValidWireGuardScript", GeneratesSelfHostScript),
             ("SshTunnel_FindsBuiltInWindowsSshAndBuildsArgs", SshTunnelBuildsArgs),
-            ("NativeWindowsVpn_IsSupportedOnWindows", () => Assert(NativeWindowsVpnService.IsSupported(), "rasdial.exe must exist"))
+            ("NativeWindowsVpn_IsSupportedOnWindows", () => Assert(NativeWindowsVpnService.IsSupported(), "rasdial.exe must exist")),
+            ("VpnGateSort_RanksReadyAndFastestNodesFirst", SortRanksReadyAndFastestFirst)
         };
 
         int failed = 0;
@@ -73,5 +74,17 @@ public static class Program
         Assert(SshTunnelService.FindSshExe() != null, "Built-in Windows OpenSSH must be found");
         string args = SshTunnelService.BuildArguments("203.0.113.10", 22, "ubuntu", 10809);
         Assert(args.Contains("-D 127.0.0.1:10809") && args.Contains("ubuntu@203.0.113.10"), "SSH args invalid");
+    }
+
+    private static void SortRanksReadyAndFastestFirst()
+    {
+        var list = new List<VpnGateNode>
+        {
+            new() { Ip = "1.1.1.1", IsSstpReady = false, SpeedMbps = 900, PingMs = 9999 },
+            new() { Ip = "2.2.2.2", IsSstpReady = true, SpeedMbps = 100, PingMs = 200 },
+            new() { Ip = "3.3.3.3", IsSstpReady = true, SpeedMbps = 250, PingMs = 60 }
+        };
+        var sorted = VpnGateDirectoryService.SortByFastest(list);
+        Assert(sorted[0].Ip == "3.3.3.3" && sorted[1].Ip == "2.2.2.2" && sorted[2].Ip == "1.1.1.1", "Sort order incorrect");
     }
 }

@@ -123,26 +123,51 @@ public sealed class VpnGateDirectoryService
     public static string DecodeOpenVpnConfig(string base64) =>
         Encoding.UTF8.GetString(Convert.FromBase64String(base64));
 
-    public async Task ProbePingsAsync(IEnumerable<VpnGateNode> nodes, CancellationToken ct = default)
+    public async Task<List<VpnGateNode>> ProbeAndSortFastestAsync(IEnumerable<VpnGateNode> nodes, CancellationToken ct = default)
     {
-        var tasks = nodes.Take(35).Select(async node =>
+        var list = nodes.ToList();
+        using var gate = new SemaphoreSlim(20);
+
+        var tasks = list.Select(async node =>
         {
-            string host = node.HostName.Contains('.') ? node.HostName : $"{node.HostName}.opengw.net";
+            await gate.WaitAsync(ct);
             try
             {
-                using var sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                string host = node.HostName.Contains('.') ? node.HostName : $"{node.HostName}.opengw.net";
+                using var tcp = new TcpClient();
                 using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                timeoutCts.CancelAfter(1500);
+                timeoutCts.CancelAfter(2000);
+
                 var sw = Stopwatch.StartNew();
-                await sock.ConnectAsync(host, 443, timeoutCts.Token);
+                await tcp.ConnectAsync(host, 443, timeoutCts.Token);
+                using var ssl = new System.Net.Security.SslStream(tcp.GetStream(), false, (_, _, _, _) => true);
+                await ssl.AuthenticateAsClientAsync(new System.Net.Security.SslClientAuthenticationOptions
+                {
+                    TargetHost = host
+                }, timeoutCts.Token);
                 sw.Stop();
-                node.PingMs = (int)sw.ElapsedMilliseconds;
+
+                node.PingMs = Math.Max(1, (int)sw.ElapsedMilliseconds);
+                node.IsSstpReady = true;
             }
             catch
             {
+                node.IsSstpReady = false;
                 node.PingMs = 9999;
             }
+            finally
+            {
+                gate.Release();
+            }
         });
+
         await Task.WhenAll(tasks);
+        return SortByFastest(list);
     }
+
+    public static List<VpnGateNode> SortByFastest(IEnumerable<VpnGateNode> nodes) =>
+        nodes.OrderByDescending(n => n.IsSstpReady)
+             .ThenByDescending(n => n.SpeedMbps / Math.Max(30.0, n.PingMs))
+             .ThenBy(n => n.PingMs)
+             .ToList();
 }

@@ -34,4 +34,6 @@ public sealed class VpnGateNode
     public string CountryLong { get; init; } = string.Empty;
     public string CountryShort { get; init; } = string.Empty;
     public string OpenVpnConfigBase64 { get; init; } = string.Empty;
+    public bool IsSstpReady { get; set; }
+    public string HealthStatus => IsSstpReady ? "✓ جاهز (SSTP)" : "✗ غير مستجيب";
 }
