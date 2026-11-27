@@ -55,7 +55,11 @@ public sealed class NativeWindowsVpnService : IDisposable
         if (dialCode != 0)
         {
             Disconnect();
-            return (false, $"Connection failed: {dialOut}");
+            if (dialOut.Contains("789"))
+                return (false, "Error 789: L2TP blocked by ISP/NAT. Try SSTP (443) or OpenVPN.");
+            string oneLine = dialOut.Replace("\r", " ").Replace("\n", " ").Trim();
+            if (oneLine.Length > 110) oneLine = oneLine[..110] + "...";
+            return (false, $"Connection failed: {oneLine}");
         }
 
         IsConnected = true;

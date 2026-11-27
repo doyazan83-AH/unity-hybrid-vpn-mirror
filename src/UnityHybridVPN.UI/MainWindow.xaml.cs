@@ -146,23 +146,26 @@ public partial class MainWindow : Window
     {
         var (ok, msg) = await _controller.ConnectAsync(profile);
         TxtConnState.Text = msg;
+        TxtConnState.ToolTip = msg;
         TxtConnState.Foreground = new SolidColorBrush(ok
             ? System.Windows.Media.Color.FromRgb(16, 185, 129)
             : System.Windows.Media.Color.FromRgb(239, 68, 68));
-        BtnDisconnect.IsEnabled = ok;
     }
 
-    private void BtnDisconnect_Click(object sender, RoutedEventArgs e)
+    private async void BtnDisconnect_Click(object sender, RoutedEventArgs e)
     {
-        _controller.Disconnect();
-        _nativeVpn.Disconnect();
-        _sshTunnel.Disconnect();
-        KillSwitchService.Disable();
+        TxtConnState.Text = _isArabic ? "جاري قطع الاتصال..." : "Disconnecting...";
+        await Task.Run(() =>
+        {
+            _controller.Disconnect();
+            _nativeVpn.Disconnect();
+            _sshTunnel.Disconnect();
+            KillSwitchService.Disable();
+        });
         if (ChkKillSwitch.IsChecked == true) ChkKillSwitch.IsChecked = false;
         BtnConnectSsh.Content = _isArabic ? "تشغيل نفق SSH" : "Start SSH Tunnel";
         TxtConnState.Text = _isArabic ? "غير متصل (Ready)" : "Disconnected (Ready)";
         TxtConnState.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(245, 158, 11));
-        BtnDisconnect.IsEnabled = false;
     }
 
     private void ChkKillSwitch_Changed(object sender, RoutedEventArgs e)
@@ -240,14 +243,21 @@ public partial class MainWindow : Window
             var node = _allNodes.FirstOrDefault(n => n.Ip == ip);
             if (node == null) return;
 
-            // If OpenVPN is not installed, connect directly using Windows built-in L2TP (zero downloads)
+            // If OpenVPN is not installed, try Windows SSTP (TCP 443) first on VPNGate *.opengw.net, then L2TP
             if (TunnelController.FindOpenVpnExe() == null)
             {
-                TxtConnState.Text = $"Connecting Windows L2TP -> {node.Ip}...";
-                var (ok, msg) = await Task.Run(() => _nativeVpn.Connect(node.Ip, NativeVpnProtocol.L2tp));
+                string sstpHost = node.HostName.Contains('.') ? node.HostName : $"{node.HostName}.opengw.net";
+                TxtConnState.Text = $"Connecting Windows SSTP (443) -> {sstpHost}...";
+                TxtConnState.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(56, 189, 248));
+                var (ok, msg) = await Task.Run(() =>
+                {
+                    var sstpRes = _nativeVpn.Connect(sstpHost, NativeVpnProtocol.Sstp);
+                    if (sstpRes.Ok) return sstpRes;
+                    return _nativeVpn.Connect(node.Ip, NativeVpnProtocol.L2tp);
+                });
                 TxtConnState.Text = msg;
+                TxtConnState.ToolTip = msg;
                 TxtConnState.Foreground = new SolidColorBrush(ok ? System.Windows.Media.Color.FromRgb(16, 185, 129) : System.Windows.Media.Color.FromRgb(239, 68, 68));
-                BtnDisconnect.IsEnabled = ok;
                 return;
             }
 
@@ -278,8 +288,8 @@ public partial class MainWindow : Window
         TxtConnState.Text = $"Connecting Windows {proto} -> {ip}...";
         var (ok, msg) = await Task.Run(() => _nativeVpn.Connect(ip, proto));
         TxtConnState.Text = msg;
+        TxtConnState.ToolTip = msg;
         TxtConnState.Foreground = new SolidColorBrush(ok ? System.Windows.Media.Color.FromRgb(16, 185, 129) : System.Windows.Media.Color.FromRgb(239, 68, 68));
-        BtnDisconnect.IsEnabled = ok;
     }
 
     private void BtnGenScript_Click(object sender, RoutedEventArgs e)
