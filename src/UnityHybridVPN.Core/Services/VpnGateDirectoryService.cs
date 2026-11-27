@@ -13,6 +13,7 @@ public sealed class VpnGateDirectoryService
 {
     private static readonly string[] DefaultUrls =
     {
+        "https://raw.githubusercontent.com/doyazan83-AH/unity-hybrid-vpn-mirror/main/vpngate_cache.csv",
         "https://www.vpngate.net/api/iphone/",
         "http://www.vpngate.net/api/iphone/"
     };

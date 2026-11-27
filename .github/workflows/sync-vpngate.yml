@@ -3,6 +3,10 @@ name: Sync VPNGate Mirror
 on:
   schedule:
     - cron: "0 * * * *"
+  push:
+    branches: [main]
+    paths-ignore:
+      - "vpngate_cache.csv"
   workflow_dispatch:
 
 permissions:
