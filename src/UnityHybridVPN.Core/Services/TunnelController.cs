@@ -85,7 +85,7 @@ public sealed class TunnelController : IDisposable
             }
             string ovpnPath = Path.Combine(tempDir, $"uhvpn_{profile.Id}.ovpn");
             await File.WriteAllTextAsync(ovpnPath, profile.ConfigContent);
-            _activeProcess = Process.Start(new ProcessStartInfo(ovpn, $"--config \"{ovpnPath}\"")
+            _activeProcess = Process.Start(new ProcessStartInfo(ovpn, $"--config \"{ovpnPath}\" --disable-dco --data-ciphers AES-128-CBC:AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305")
             {
                 UseShellExecute = true,
                 Verb = "runas"
