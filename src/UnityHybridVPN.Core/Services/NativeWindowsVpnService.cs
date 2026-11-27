@@ -43,9 +43,14 @@ public sealed class NativeWindowsVpnService : IDisposable
         string l2tpPskArg = protocol == NativeVpnProtocol.L2tp ? $" -L2tpPsk '{safePsk}'" : string.Empty;
 
         string psCmd =
-            $"Remove-VpnConnection -Name '{ConnectionName}' -Force -ErrorAction SilentlyContinue; " +
-            $"Add-VpnConnection -Name '{ConnectionName}' -ServerAddress '{safeServer}' -TunnelType {tunnelType}{l2tpPskArg} " +
-            $"-EncryptionLevel Optional -AuthenticationMethod Pap,Chap,MSChapv2 -Force";
+            $"rasdial '{ConnectionName}' /disconnect | Out-Null; " +
+            $"if (Get-VpnConnection -Name '{ConnectionName}' -ErrorAction SilentlyContinue) {{ " +
+            $"  Set-VpnConnection -Name '{ConnectionName}' -ServerAddress '{safeServer}' -TunnelType {tunnelType}{l2tpPskArg} " +
+            $"  -EncryptionLevel Optional -AuthenticationMethod Pap,Chap,MSChapv2 -Force " +
+            $"}} else {{ " +
+            $"  Add-VpnConnection -Name '{ConnectionName}' -ServerAddress '{safeServer}' -TunnelType {tunnelType}{l2tpPskArg} " +
+            $"  -EncryptionLevel Optional -AuthenticationMethod Pap,Chap,MSChapv2 -Force " +
+            $"}}";
 
         var (psCode, psErr) = RunTool("powershell", $"-NoProfile -ExecutionPolicy Bypass -Command \"{psCmd}\"");
         if (psCode != 0)

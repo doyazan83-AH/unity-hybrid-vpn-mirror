@@ -203,6 +203,11 @@ public partial class MainWindow : Window
         {
             _allNodes = await _vpnGate.FetchNodesAsync(TxtMirrorUrl.Text);
             await _vpnGate.ProbePingsAsync(_allNodes);
+            _allNodes = _allNodes
+                .OrderByDescending(n => n.PingMs > 0 && n.PingMs < 999)
+                .ThenByDescending(n => n.SpeedMbps)
+                .ThenBy(n => n.PingMs > 0 ? n.PingMs : int.MaxValue)
+                .ToList();
             FilterVpnGateNodes();
         }
         catch (Exception ex)
@@ -220,7 +225,10 @@ public partial class MainWindow : Window
     {
         var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "VPNGate CSV (*.csv)|*.csv|All Files (*.*)|*.*" };
         if (dlg.ShowDialog() != true) return;
-        _allNodes = VpnGateDirectoryService.ParseCsv(File.ReadAllText(dlg.FileName));
+        _allNodes = VpnGateDirectoryService.ParseCsv(File.ReadAllText(dlg.FileName))
+            .OrderByDescending(n => n.SpeedMbps)
+            .ThenBy(n => n.PingMs > 0 ? n.PingMs : int.MaxValue)
+            .ToList();
         FilterVpnGateNodes();
     }
 
