@@ -125,21 +125,22 @@ public sealed class VpnGateDirectoryService
 
     public async Task ProbePingsAsync(IEnumerable<VpnGateNode> nodes, CancellationToken ct = default)
     {
-        var tasks = nodes.Take(25).Select(async node =>
+        var tasks = nodes.Take(35).Select(async node =>
         {
+            string host = node.HostName.Contains('.') ? node.HostName : $"{node.HostName}.opengw.net";
             try
             {
                 using var sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 timeoutCts.CancelAfter(1500);
                 var sw = Stopwatch.StartNew();
-                await sock.ConnectAsync(node.Ip, 443, timeoutCts.Token);
+                await sock.ConnectAsync(host, 443, timeoutCts.Token);
                 sw.Stop();
                 node.PingMs = (int)sw.ElapsedMilliseconds;
             }
             catch
             {
-                // Keep directory ping or mark unreachable
+                node.PingMs = 9999;
             }
         });
         await Task.WhenAll(tasks);

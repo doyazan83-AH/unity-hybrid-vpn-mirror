@@ -20,6 +20,7 @@ public partial class MainWindow : Window
     private System.Windows.Forms.NotifyIcon? _trayIcon;
     private bool _isArabic = true;
     private bool _forceExit;
+    private bool _isBusy;
 
     public MainWindow()
     {
@@ -246,26 +247,26 @@ public partial class MainWindow : Window
 
     private async void BtnUseVpnGateNode_Click(object sender, RoutedEventArgs e)
     {
+        if (_isBusy) return;
         if (sender is System.Windows.Controls.Button { Tag: string ip })
         {
             var node = _allNodes.FirstOrDefault(n => n.Ip == ip);
             if (node == null) return;
 
-            // If OpenVPN is not installed, try Windows SSTP (TCP 443) first on VPNGate *.opengw.net, then L2TP
             if (TunnelController.FindOpenVpnExe() == null)
             {
-                string sstpHost = node.HostName.Contains('.') ? node.HostName : $"{node.HostName}.opengw.net";
-                TxtConnState.Text = $"Connecting Windows SSTP (443) -> {sstpHost}...";
-                TxtConnState.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(56, 189, 248));
-                var (ok, msg) = await Task.Run(() =>
+                _isBusy = true;
+                try
                 {
-                    var sstpRes = _nativeVpn.Connect(sstpHost, NativeVpnProtocol.Sstp);
-                    if (sstpRes.Ok) return sstpRes;
-                    return _nativeVpn.Connect(node.Ip, NativeVpnProtocol.L2tp);
-                });
-                TxtConnState.Text = msg;
-                TxtConnState.ToolTip = msg;
-                TxtConnState.Foreground = new SolidColorBrush(ok ? System.Windows.Media.Color.FromRgb(16, 185, 129) : System.Windows.Media.Color.FromRgb(239, 68, 68));
+                    string sstpHost = node.HostName.Contains('.') ? node.HostName : $"{node.HostName}.opengw.net";
+                    TxtConnState.Text = $"Connecting SSTP (443) -> {sstpHost}...";
+                    TxtConnState.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(56, 189, 248));
+                    var (ok, msg) = await Task.Run(() => _nativeVpn.Connect(sstpHost, NativeVpnProtocol.Sstp));
+                    TxtConnState.Text = msg;
+                    TxtConnState.ToolTip = msg;
+                    TxtConnState.Foreground = new SolidColorBrush(ok ? System.Windows.Media.Color.FromRgb(16, 185, 129) : System.Windows.Media.Color.FromRgb(239, 68, 68));
+                }
+                finally { _isBusy = false; }
                 return;
             }
 
@@ -284,6 +285,53 @@ public partial class MainWindow : Window
             TunnelController.SaveProfiles(_profiles);
             RefreshProfilesUi();
             await ConnectProfileAsync(profile);
+        }
+    }
+
+    private async void BtnAutoConnect_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isBusy) return;
+        _isBusy = true;
+        BtnAutoConnect.IsEnabled = false;
+        try
+        {
+            if (_allNodes.Count == 0)
+            {
+                TxtConnState.Text = _isArabic ? "جاري جلب أسرع الخوادم..." : "Fetching fastest servers...";
+                _allNodes = await _vpnGate.FetchNodesAsync(TxtMirrorUrl.Text);
+                await _vpnGate.ProbePingsAsync(_allNodes);
+                _allNodes = _allNodes
+                    .OrderByDescending(n => n.PingMs > 0 && n.PingMs < 999)
+                    .ThenByDescending(n => n.SpeedMbps)
+                    .ThenBy(n => n.PingMs > 0 ? n.PingMs : int.MaxValue)
+                    .ToList();
+                FilterVpnGateNodes();
+            }
+
+            var candidates = _allNodes.Where(n => n.PingMs > 0 && n.PingMs < 9000).Take(8).ToList();
+            if (candidates.Count == 0) candidates = _allNodes.Take(5).ToList();
+
+            foreach (var node in candidates)
+            {
+                string sstpHost = node.HostName.Contains('.') ? node.HostName : $"{node.HostName}.opengw.net";
+                TxtConnState.Text = $"Trying {node.CountryShort} ({sstpHost})...";
+                TxtConnState.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(56, 189, 248));
+                var (ok, msg) = await Task.Run(() => _nativeVpn.Connect(sstpHost, NativeVpnProtocol.Sstp));
+                if (ok)
+                {
+                    TxtConnState.Text = $"{msg} [{node.CountryLong} - {node.SpeedMbps} Mbps]";
+                    TxtConnState.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(16, 185, 129));
+                    return;
+                }
+            }
+
+            TxtConnState.Text = _isArabic ? "لم يستجب أي خادم حالياً — حدّث القائمة وحاول مجدداً." : "No server responded — refresh and try again.";
+            TxtConnState.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(239, 68, 68));
+        }
+        finally
+        {
+            _isBusy = false;
+            BtnAutoConnect.IsEnabled = true;
         }
     }
 

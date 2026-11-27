@@ -122,6 +122,7 @@
 
                     <WrapPanel Grid.Row="1" Margin="0,0,0,10">
                         <Button x:Name="BtnFetchNodes" Content="تحديث الخوادم المجانية الآن" Background="#0284C7" Margin="0,0,8,6" Click="BtnFetchNodes_Click"/>
+                        <Button x:Name="BtnAutoConnect" Content="اتصال تلقائي بالأسرع" Background="#7C3AED" Margin="0,0,8,6" Click="BtnAutoConnect_Click"/>
                         <Button x:Name="BtnImportCsv" Content="استيراد CSV" Background="#334155" Margin="0,0,8,6" Click="BtnImportCsv_Click"/>
                         <TextBox x:Name="TxtMirrorUrl" Width="190" Padding="7" Margin="0,0,8,6" Background="#1F2937" Foreground="#F8FAFC" BorderBrush="#334155" ToolTip="رابط مرآة بديل (GitHub Raw / Cloudflare Worker)"/>
                         <TextBox x:Name="TxtCountryFilter" Width="120" Padding="7" Margin="0,0,8,6" Background="#1F2937" Foreground="#F8FAFC" BorderBrush="#334155" TextChanged="TxtCountryFilter_TextChanged" ToolTip="بحث باسم الدولة"/>
