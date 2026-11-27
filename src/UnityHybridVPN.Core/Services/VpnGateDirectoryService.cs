@@ -117,7 +117,7 @@ public sealed class VpnGateDirectoryService
             });
         }
 
-        return nodes.OrderByDescending(n => n.SpeedMbps).Take(60).ToList();
+        return nodes.OrderByDescending(n => n.SpeedMbps).Take(150).ToList();
     }
 
     public static string DecodeOpenVpnConfig(string base64) =>
@@ -169,5 +169,11 @@ public sealed class VpnGateDirectoryService
         nodes.OrderByDescending(n => n.IsSstpReady)
              .ThenByDescending(n => n.SpeedMbps / Math.Max(30.0, n.PingMs))
              .ThenBy(n => n.PingMs)
+             .ToList();
+
+    public static List<VpnGateNode> SortByLowestPing(IEnumerable<VpnGateNode> nodes) =>
+        nodes.OrderByDescending(n => n.IsSstpReady)
+             .ThenBy(n => n.PingMs > 0 ? n.PingMs : int.MaxValue)
+             .ThenByDescending(n => n.SpeedMbps)
              .ToList();
 }

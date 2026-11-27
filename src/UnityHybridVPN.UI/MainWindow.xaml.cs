@@ -107,6 +107,51 @@ public partial class MainWindow : Window
     private void BtnImportWg_Click(object sender, RoutedEventArgs e) => ImportConfig(VpnProtocol.WireGuard, "WireGuard Config (*.conf)|*.conf");
     private void BtnImportOvpn_Click(object sender, RoutedEventArgs e) => ImportConfig(VpnProtocol.OpenVPN, "OpenVPN Config (*.ovpn)|*.ovpn");
 
+    private void BtnPasteConfig_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Window
+        {
+            Title = _isArabic ? "لصق إعداد WireGuard أو OpenVPN" : "Paste WireGuard / OpenVPN Config",
+            Width = 560, Height = 440, WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = this,
+            Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(17, 24, 39)),
+            Foreground = System.Windows.Media.Brushes.White
+        };
+        var root = new System.Windows.Controls.StackPanel { Margin = new Thickness(16) };
+        var txtName = new System.Windows.Controls.TextBox { Text = "ProtonFree-WG", Padding = new Thickness(8), Margin = new Thickness(0, 0, 0, 8), Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(31, 41, 55)), Foreground = System.Windows.Media.Brushes.White };
+        var txtCfg = new System.Windows.Controls.TextBox { Height = 260, AcceptsReturn = true, VerticalScrollBarVisibility = System.Windows.Controls.ScrollBarVisibility.Auto, Padding = new Thickness(8), FontFamily = new System.Windows.Media.FontFamily("Consolas"), Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(11, 16, 27)), Foreground = System.Windows.Media.Brushes.LightGreen };
+        var btnSave = new System.Windows.Controls.Button { Content = _isArabic ? "فحص وحفظ الإعداد" : "Validate & Save", Margin = new Thickness(0, 10, 0, 0), Padding = new Thickness(12, 8, 12, 8) };
+        btnSave.Click += (_, _) =>
+        {
+            string raw = txtCfg.Text.Trim();
+            var proto = raw.Contains("[Interface]", StringComparison.OrdinalIgnoreCase) ? VpnProtocol.WireGuard : VpnProtocol.OpenVPN;
+            var check = ConfigSecurityValidator.Validate(proto, raw);
+            if (!check.IsValid)
+            {
+                System.Windows.MessageBox.Show(dlg, check.Error, "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            _profiles.Add(new VpnProfile
+            {
+                Name = string.IsNullOrWhiteSpace(txtName.Text) ? $"Pasted-{proto}" : txtName.Text.Trim(),
+                Protocol = proto,
+                Country = "Private",
+                Trust = TrustLevel.PrivateSelfHosted,
+                Endpoint = check.Endpoint,
+                ConfigContent = raw
+            });
+            TunnelController.SaveProfiles(_profiles);
+            RefreshProfilesUi();
+            dlg.DialogResult = true;
+        };
+        root.Children.Add(new System.Windows.Controls.TextBlock { Text = _isArabic ? "اسم البروفايل:" : "Profile Name:", Margin = new Thickness(0, 0, 0, 4) });
+        root.Children.Add(txtName);
+        root.Children.Add(new System.Windows.Controls.TextBlock { Text = _isArabic ? "الصق محتوى .conf (WireGuard) أو .ovpn (OpenVPN) هنا:" : "Paste .conf or .ovpn content here:", Margin = new Thickness(0, 0, 0, 4) });
+        root.Children.Add(txtCfg);
+        root.Children.Add(btnSave);
+        dlg.Content = root;
+        dlg.ShowDialog();
+    }
+
     private void ImportConfig(VpnProtocol protocol, string filter)
     {
         var dlg = new Microsoft.Win32.OpenFileDialog { Filter = filter };
@@ -232,6 +277,14 @@ public partial class MainWindow : Window
     }
 
     private void TxtCountryFilter_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => FilterVpnGateNodes();
+    private void ChkSortLowestPing_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_allNodes.Count == 0) return;
+        _allNodes = ChkSortLowestPing.IsChecked == true
+            ? VpnGateDirectoryService.SortByLowestPing(_allNodes)
+            : VpnGateDirectoryService.SortByFastest(_allNodes);
+        FilterVpnGateNodes();
+    }
 
     private void FilterVpnGateNodes()
     {

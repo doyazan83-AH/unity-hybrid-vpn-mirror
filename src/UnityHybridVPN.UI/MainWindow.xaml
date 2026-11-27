@@ -72,9 +72,10 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                        <Button x:Name="BtnImportWg" Content="استيراد ملف WireGuard (.conf)" Background="#7C3AED" Margin="0,0,10,0" Click="BtnImportWg_Click"/>
-                        <Button x:Name="BtnImportOvpn" Content="استيراد ملف OpenVPN (.ovpn)" Background="#0284C7" Margin="0,0,10,0" Click="BtnImportOvpn_Click"/>
-                        <CheckBox x:Name="ChkKillSwitch" Content="Kill Switch (جدار الحماية)" Foreground="#FDE68A" VerticalAlignment="Center" Margin="10,0,0,0" Checked="ChkKillSwitch_Changed" Unchecked="ChkKillSwitch_Changed"/>
+                        <Button x:Name="BtnImportWg" Content="استيراد ملف WireGuard (.conf)" Background="#7C3AED" Margin="0,0,8,0" Click="BtnImportWg_Click"/>
+                        <Button x:Name="BtnImportOvpn" Content="استيراد ملف OpenVPN (.ovpn)" Background="#0284C7" Margin="0,0,8,0" Click="BtnImportOvpn_Click"/>
+                        <Button x:Name="BtnPasteConfig" Content="لصق إعداد (WireGuard / OpenVPN)" Background="#10B981" Foreground="#052E16" Margin="0,0,10,0" Click="BtnPasteConfig_Click"/>
+                        <CheckBox x:Name="ChkKillSwitch" Content="Kill Switch (جدار الحماية)" Foreground="#FDE68A" VerticalAlignment="Center" Margin="6,0,0,0" Checked="ChkKillSwitch_Changed" Unchecked="ChkKillSwitch_Changed"/>
                     </StackPanel>
                     <DataGrid x:Name="GridProfiles" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False"
                               Background="#0B101B" Foreground="#F1F5F9" RowBackground="#111827" AlternatingRowBackground="#161F30"
@@ -132,6 +133,7 @@
                             <ComboBoxItem Content="L2TP" Tag="L2tp"/>
                         </ComboBox>
                         <Button x:Name="BtnNativeConnect" Content="اتصال Windows مباشر" Background="#10B981" Foreground="#052E16" Margin="0,0,8,6" Click="BtnNativeConnect_Click"/>
+                        <CheckBox x:Name="ChkSortLowestPing" Content="أقل Ping أولاً" Foreground="#38BDF8" VerticalAlignment="Center" Margin="0,0,8,6" Checked="ChkSortLowestPing_Changed" Unchecked="ChkSortLowestPing_Changed"/>
                         <CheckBox x:Name="ChkUseExternalOpenVpn" Content="استخدام OpenVPN الخارجي" Foreground="#94A3B8" VerticalAlignment="Center" Margin="0,0,0,6" IsChecked="False"/>
                     </WrapPanel>
 

@@ -17,7 +17,8 @@ public static class Program
             ("SelfHostScript_GeneratesValidWireGuardScript", GeneratesSelfHostScript),
             ("SshTunnel_FindsBuiltInWindowsSshAndBuildsArgs", SshTunnelBuildsArgs),
             ("NativeWindowsVpn_IsSupportedOnWindows", () => Assert(NativeWindowsVpnService.IsSupported(), "rasdial.exe must exist")),
-            ("VpnGateSort_RanksReadyAndFastestNodesFirst", SortRanksReadyAndFastestFirst)
+            ("VpnGateSort_RanksReadyAndFastestNodesFirst", SortRanksReadyAndFastestFirst),
+            ("VpnGateSort_LowestPingRanksLowestLatencyFirst", SortLowestPingRanksLowestFirst)
         };
 
         int failed = 0;
@@ -86,5 +87,16 @@ public static class Program
         };
         var sorted = VpnGateDirectoryService.SortByFastest(list);
         Assert(sorted[0].Ip == "3.3.3.3" && sorted[1].Ip == "2.2.2.2" && sorted[2].Ip == "1.1.1.1", "Sort order incorrect");
+    }
+
+    private static void SortLowestPingRanksLowestFirst()
+    {
+        var list = new List<VpnGateNode>
+        {
+            new() { Ip = "1.1.1.1", IsSstpReady = true, SpeedMbps = 500, PingMs = 240 },
+            new() { Ip = "2.2.2.2", IsSstpReady = true, SpeedMbps = 80, PingMs = 65 }
+        };
+        var sorted = VpnGateDirectoryService.SortByLowestPing(list);
+        Assert(sorted[0].Ip == "2.2.2.2", "Lowest ping must rank first");
     }
 }
